@@ -13,9 +13,14 @@ var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 
-var client_id = 'CLIENT_ID'; // Your client id
-var client_secret = 'CLIENT_SECRET'; // Your secret
-var redirect_uri = 'REDIRECT_URI'; // Your redirect uri
+var client_id = '4c7f2950c897477ab9e298e92c512736'; // Your client id
+var client_secret = 'a7184257062b4d9e879315fe9a1b1db8'; // Your secret
+var redirect_uri = 'http://192.168.1.108:8888/callback'; // Your redirect uri
+
+/********/
+var access_token;
+var refresh_token;
+/********/
 
 /**
  * Generates a random string containing numbers and letters
@@ -46,7 +51,7 @@ app.get('/login', function(req, res) {
   res.cookie(stateKey, state);
 
   // your application requests authorization
-  var scope = 'user-read-private user-read-email';
+  var scope = 'user-top-read user-read-recently-played user-read-currently-playing user-library-read user-read-private user-read-email playlist-read-collaborative playlist-read-private';
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
@@ -89,8 +94,8 @@ app.get('/callback', function(req, res) {
     request.post(authOptions, function(error, response, body) {
       if (!error && response.statusCode === 200) {
 
-        var access_token = body.access_token,
-            refresh_token = body.refresh_token;
+        access_token = body.access_token;
+        refresh_token = body.refresh_token;
 
         var options = {
           url: 'https://api.spotify.com/v1/me',
@@ -122,7 +127,7 @@ app.get('/callback', function(req, res) {
 app.get('/refresh_token', function(req, res) {
 
   // requesting access token from refresh token
-  var refresh_token = req.query.refresh_token;
+  refresh_token = req.query.refresh_token;
   var authOptions = {
     url: 'https://accounts.spotify.com/api/token',
     headers: { 'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64')) },
@@ -143,5 +148,200 @@ app.get('/refresh_token', function(req, res) {
   });
 });
 
+
+//aquí mis métodos-------------------------------------------------------
+
+app.get('/getTopArtists', function (req, res){
+  var options = {
+    url: 'https://api.spotify.com/v1/me/top/artists?limit=25',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body) {
+    res.send(body);
+  });
+});
+
+
+app.get('/getSavedAlbums', function (req, res){
+  var options = {
+    url: 'https://api.spotify.com/v1/me/albums',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body) {
+    res.send(body);
+  });
+});
+
+app.get('/getUserData', function (req, res){
+  var options = {
+    url: 'https://api.spotify.com/v1/me',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body) {
+    res.send(body);
+  });
+});
+
+app.get('/getTopTracks', function (req, res){
+  var options = {
+    url: 'https://api.spotify.com/v1/me/top/tracks?limit=45',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body) {
+    res.send(body);
+  });
+});
+
+app.get('/getRecentlyPlayed', function (req, res){
+  var options = {
+    url: 'https://api.spotify.com/v1/me/player/recently-played?limit=45',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body) {
+    res.send(body);
+  });
+});
+
+app.get('/getPlaylists', function (req, res){
+  var options = {
+    url: 'https://api.spotify.com/v1/me/playlists',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body) {
+    res.send(body);
+  });
+});
+
+app.get('/getArtist', function (req, res){
+  var idArtist = req.query.id
+  var options = {
+    url: 'https://api.spotify.com/v1/artists/' + idArtist,
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body) {
+    res.send(body);
+  });
+});
+
+app.get('/getArtistRelatedArtists', function (req, res){
+  var idArtist = req.query.id
+  var options = {
+    url: 'https://api.spotify.com/v1/artists/' + idArtist + '/related-artists',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body) {
+    res.send(body);
+  });
+});
+
+app.get('/getUser', function (req, res){
+  var idUser = req.query.id
+  var options = {
+    url: 'https://api.spotify.com/v1/users/' + idUser,
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body) {
+    res.send(body);
+  });
+});
+
+
+
+
+app.get('/getArtistTopTracks', function (req, res){
+  var idArtist = req.query.id
+  var options = {
+    url: 'https://api.spotify.com/v1/artists/' + idArtist + '/top-tracks?country=ES',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body) {
+    res.send(body);
+  });
+});
+
+app.get('/getArtistAlbums', function (req, res){
+  var idArtist = req.query.id
+  var options = {
+    url: 'https://api.spotify.com/v1/artists/' + idArtist + '/albums?include_groups=album&limit=36&country=ES',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body) {
+    res.send(body);
+  });
+});
+
+app.get('/getArtistSingles', function (req, res){
+  var idArtist = req.query.id
+  var options = {
+    url: 'https://api.spotify.com/v1/artists/' + idArtist + '/albums?include_groups=single&limit=36&country=ES',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body) {
+    res.send(body);
+  });
+});
+
+
+app.get('/searchAlbum', function (req, res){
+  var stringAlbum = req.query.stringAlbum
+  var options = {
+    url: 'https://api.spotify.com/v1/search?q=' + stringAlbum + '&type=album',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body) {
+    res.send(body);
+  });
+});
+app.get('/searchArtist', function (req, res){
+  var stringArtist = req.query.stringArtist
+  var options = {
+    url: 'https://api.spotify.com/v1/search?q=' + stringArtist + '&type=artist',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body) {
+    res.send(body);
+  });
+});
+
+app.get('/searchTrack', function (req, res){
+  var stringTrack = req.query.stringTrack
+  var options = {
+    url: 'https://api.spotify.com/v1/search?q=' + stringTrack + '&type=track',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+
+  request.get(options, function(error, response, body) {
+    res.send(body);
+  });
+});
 console.log('Listening on 8888');
 app.listen(8888);
